@@ -10,6 +10,10 @@ import image_service
 
 # Load environment
 load_dotenv(override=True)
+ 
+UPLOAD_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+for sub in ["documents", "images", "audio", "generated"]:
+    os.makedirs(os.path.join(UPLOAD_BASE, sub), exist_ok=True)
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "gyan-super-secret-key-2025-ai")
@@ -560,7 +564,7 @@ def regenerate_response(conv_id):
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("FLASK_PORT", 5000))
+    port = int(os.getenv("PORT", os.getenv("FLASK_PORT", 5000)))
     debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1")
-    print(f"Starting GYAN AI on http://127.0.0.1:{port}")
+    print(f"Starting GYAN AI on http://0.0.0.0:{port}")
     app.run(host="0.0.0.0", port=port, debug=debug)

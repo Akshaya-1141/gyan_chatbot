@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GYAN — Intelligent Agentic AI Companion</title>
+  <meta name="description" content="GYAN: An aesthetic, highly accurate AI companion powered by Groq. Featuring multimodal file & image analysis, Whisper voice input, reasoning effort levels, and contextual inquiry." />
+  <link rel="icon" type="image/svg+xml" href="/static/img/logo.svg" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  
+  <!-- Marked.js for Markdown Rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+
+  <!-- KaTeX for Math & Formula Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css?v=7.0" />
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout" id="appLayout">
+    
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar Header -->
+      <div class="sidebar-header">
+        <div class="brand-container">
+          <div class="brand-logo-wrap">
+            <img src="/static/img/logo.svg" alt="GYAN Logo" class="brand-logo" />
+            <div class="brand-glow"></div>
+          </div>
+          <div class="brand-info">
+            <h1 class="brand-name">GYAN</h1>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Chat Button & Image Studio -->
+      <div class="sidebar-action">
+        <button class="btn btn-primary new-chat-btn" id="newChatBtn">
+          <i data-lucide="plus"></i>
+          <span>New Chat</span>
+        </button>
+        <button class="btn btn-secondary image-studio-btn" id="openImageStudioBtn" title="AI Image Generator (FLUX)">
+          <i data-lucide="palette"></i>
+          <span>Generate Image</span>
+        </button>
+      </div>
+
+      <!-- Search Previous Chats -->
+      <div class="sidebar-search">
+        <div class="search-input-wrapper">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="chatSearchInput" placeholder="Search conversations..." autocomplete="off" />
+          <button class="clear-search-btn hidden" id="clearSearchBtn" title="Clear search">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat History List -->
+      <div class="conversations-wrapper">
+        <div class="history-section-title">
+          <span>Previous Conversations</span>
+          <span class="history-count" id="historyCount">0</span>
+        </div>
+        <div class="conversation-list" id="conversationList">
+          <!-- Populated dynamically via JS -->
+          <div class="empty-history-state">
+            <i data-lucide="message-square-dashed"></i>
+            <p>No conversations yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="api-status-card" id="apiStatusCard">
+          <div class="status-indicator" id="statusIndicator"></div>
+          <div class="status-info">
+            <span class="status-label" id="statusLabel">Checking API Key...</span>
+            <span class="status-sub" id="statusSub">Groq Cloud Integration</span>
+          </div>
+          <button class="settings-trigger-btn" id="openSettingsBtn" title="Configure API Key">
+            <i data-lucide="sliders-horizontal"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-quick-tools">
+          <button class="footer-action-btn" id="clearAllChatsBtn" title="Clear all history">
+            <i data-lucide="trash-2"></i>
+            <span>Clear History</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="main-content">
+      
+      <!-- Top Navbar -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <button class="icon-btn toggle-sidebar-btn" id="toggleSidebarBtn" title="Toggle sidebar">
+            <i data-lucide="panel-left"></i>
+          </button>
+          <div class="nav-chat-meta">
+            <span class="current-chat-title" id="currentChatTitle"></span>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <div class="nav-model-badge" id="currentModelBadge" title="Engine">
+            <span id="badgeModelText">LLaMA 3.3</span>
+          </div>
+          <button class="icon-btn" id="exportChatBtn" title="Export conversation">
+            <i data-lucide="download"></i>
+          </button>
+          <!-- Hidden anchors for JS compatibility -->
+          <button class="hidden" id="navNewChatBtn"></button>
+          <div class="effort-badge hidden" id="currentEffortBadge"><span id="badgeEffortText"></span></div>
+          <button class="hidden" id="editNavTitleBtn"></button>
+          <button class="hidden" id="shortcutsBtn"></button>
+        </div>
+      </header>
+
+      <!-- Chat Scroll Container -->
+      <div class="chat-viewport" id="chatViewport">
+        
+        <!-- Minimalist Ambient Welcome Screen -->
+        <!-- Minimalist Ambient Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-hero">
+            <img src="/static/img/logo.svg" alt="GYAN" class="welcome-icon" />
+            <h2 class="welcome-title">How can I help you today?</h2>
+          </div>
+
+          <!-- Minimalist Suggestion Prompts -->
+          <div class="welcome-suggestions-grid" id="welcomeCardsGrid">
+            <button type="button" class="wvp-card" data-prompt="Write a robust async Python web scraper using httpx and asyncio with retries and rate limiting">
+              <i data-lucide="code-2" class="wvp-card-icon"></i>
+              <span>Write an async Python web scraper</span>
+            </button>
+            <button type="button" class="wvp-card" data-prompt="Explain quantum superposition and entanglement using intuitive physical analogies">
+              <i data-lucide="sparkles" class="wvp-card-icon"></i>
+              <span>Explain quantum entanglement intuitively</span>
+            </button>
+            <button type="button" class="wvp-card" data-prompt="Write a captivating opening scene for a sci-fi thriller about an impossible deep-space signal">
+              <i data-lucide="feather" class="wvp-card-icon"></i>
+              <span>Draft a sci-fi story opening scene</span>
+            </button>
+            <button type="button" class="wvp-card is-art-card" data-prompt="Futuristic neon cyberpunk city in the rain, ultra-detailed reflections on wet asphalt, cinematic lighting" data-style="cyberpunk">
+              <i data-lucide="palette" class="wvp-card-icon"></i>
+              <span>Generate cyberpunk city artwork</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Message Stream Area -->
+        <div class="messages-container" id="messagesContainer">
+          <!-- Messages dynamically appended here -->
+        </div>
+
+        <!-- Floating Selection Tooltip ("Ask GYAN about this") -->
+        <div class="selection-tooltip" id="selectionTooltip">
+          <button class="tooltip-btn" id="querySelectionBtn">
+            <i data-lucide="sparkles"></i>
+            <span>Ask GYAN about this</span>
+          </button>
+          <button class="tooltip-btn" id="explainSelectionBtn">
+            <i data-lucide="help-circle"></i>
+            <span>Explain this</span>
+          </button>
+        </div>
+
+        <!-- Floating Scroll to Bottom Button -->
+        <button class="scroll-to-bottom-btn hidden" id="scrollToBottomBtn" title="Scroll to latest message">
+          <i data-lucide="arrow-down"></i>
+        </button>
+
+      </div>
+
+      <!-- Bottom Chat Composer Area -->
+      <footer class="composer-container">
+        
+        <!-- Quoted Selection Banner (when user queries a specific selection) -->
+        <div class="quote-preview-bar hidden" id="quotePreviewBar">
+          <div class="quote-content-preview">
+            <i data-lucide="quote" class="quote-icon"></i>
+            <span class="quote-text" id="quoteText">Quoted text here...</span>
+          </div>
+          <button class="icon-btn quote-dismiss-btn" id="dismissQuoteBtn" title="Remove quote">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <!-- Attachments Previews Bar -->
+        <div class="attachments-preview-bar hidden" id="attachmentsPreviewBar">
+          <!-- Dynamically populated attachment chips -->
+        </div>
+
+        <!-- Composer Main Card -->
+        <div class="composer-card">
+          
+          <!-- Compact Reasoning Effort Control -->
+          <div class="composer-effort-row">
+            <div class="effort-pills" id="effortPills">
+              <button type="button" class="effort-pill" data-level="low" title="Concise & fast">Fast</button>
+              <button type="button" class="effort-pill active" data-level="medium" title="Balanced depth">Balanced</button>
+              <button type="button" class="effort-pill" data-level="high" title="Deep reasoning (Chain of Thought)">Deep Think</button>
+              <button type="button" class="effort-pill" data-level="extreme" title="Dual-pass verification pass">Verified</button>
+            </div>
+          </div>
+
+          <!-- Dedicated Composer Image Mode Toolbar (shown when image mode is active) -->
+          <div class="composer-image-toolbar hidden" id="composerImageToolbar">
+            <div class="cit-left">
+              <span class="cit-badge"><i data-lucide="palette"></i> FLUX Vision</span>
+              <div class="cit-select-group">
+                <label for="composerImageStyle">Style:</label>
+                <select id="composerImageStyle" class="cit-select">
+                  <option value="photorealistic">📸 Photorealistic</option>
+                  <option value="digital-art">🎨 Digital Art</option>
+                  <option value="anime">✨ Anime</option>
+                  <option value="cinematic-3d">🧊 Cinematic 3D</option>
+                  <option value="cyberpunk">⚡ Cyberpunk</option>
+                  <option value="fantasy">🔮 Epic Fantasy</option>
+                  <option value="watercolor">🖌️ Watercolor</option>
+                  <option value="sketch">✏️ Pencil Sketch</option>
+                  <option value="pixel-art">👾 Pixel Art</option>
+                  <option value="minimalist-logo">🏷️ Minimalist Logo</option>
+                </select>
+              </div>
+              <div class="cit-select-group">
+                <label for="composerImageAspect">Aspect:</label>
+                <select id="composerImageAspect" class="cit-select">
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                </select>
+              </div>
+              <div class="cit-select-group">
+                <label for="composerImageFormat">Format:</label>
+                <select id="composerImageFormat" class="cit-select">
+                  <option value="png">PNG (Lossless)</option>
+                  <option value="jpeg">JPEG (High Quality)</option>
+                  <option value="webp">WEBP (Optimized)</option>
+                </select>
+              </div>
+            </div>
+            <div class="cit-right">
+              <button type="button" class="cit-btn" id="composerRandomPromptBtn" title="Inspire with random visual prompt">
+                <i data-lucide="dices"></i>
+                <span>Random Idea</span>
+              </button>
+              <button type="button" class="cit-btn cit-exit-btn" id="composerExitImageBtn" title="Exit Image Mode">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Prompt Input Area -->
+          <div class="input-row">
+            
+            <!-- Upload Buttons -->
+            <div class="composer-left-actions">
+              <input type="file" id="fileInput" class="hidden-input" multiple accept=".pdf,.docx,.txt,.csv,.json,.md,.py,.js,.html,.css,.xml,.yaml,.yml,.sql" />
+              <button class="action-circle-btn" id="attachFileBtn" title="Upload documents (PDF, DOCX, Code, TXT)">
+                <i data-lucide="paperclip"></i>
+              </button>
+
+              <input type="file" id="imageInput" class="hidden-input" accept="image/*" />
+              <button class="action-circle-btn" id="attachImageBtn" title="Upload picture for Vision analysis">
+                <i data-lucide="image"></i>
+              </button>
+
+              <button class="action-circle-btn" id="composerGenImageBtn" title="Toggle AI Image Generation Mode">
+                <i data-lucide="sparkles"></i>
+              </button>
+            </div>
+
+            <!-- Textarea -->
+            <div class="textarea-wrapper">
+              <textarea 
+                id="promptInput" 
+                rows="1" 
+                placeholder="Ask GYAN anything"
+              ></textarea>
+            </div>
+
+            <!-- Voice & Send Buttons -->
+            <div class="composer-right-actions">
+              <!-- Voice Record Button -->
+              <button class="action-circle-btn voice-record-btn" id="voiceRecordBtn" title="Speak to GYAN (Whisper Audio)">
+                <i data-lucide="mic"></i>
+                <div class="recording-pulse"></div>
+              </button>
+
+              <!-- Send Button -->
+              <button class="action-circle-btn send-btn" id="sendBtn" title="Send message (Enter)">
+                <i data-lucide="arrow-up"></i>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </footer>
+
+    </main>
+
+    <!-- Full-Window Drag & Drop Overlay -->
+    <div class="drag-drop-overlay hidden" id="dragDropOverlay">
+      <div class="drag-drop-modal">
+        <div class="dd-icon"><i data-lucide="upload-cloud"></i></div>
+        <h3>Drop documents or images here</h3>
+        <p>Supports PDF, DOCX, Code, TXT, and Vision pictures</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal (API Key Configuration) -->
+  <div class="modal-backdrop hidden" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="key-round" class="modal-icon"></i>
+          <h3>Groq API Configuration</h3>
+        </div>
+        <button class="icon-btn modal-close-btn" id="closeSettingsBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc">
+          GYAN uses high-speed Groq LPUs for instant inference, deep reasoning, vision, and Whisper transcription. Your key is securely stored in your local <code>.env</code> file.
+        </p>
+
+        <div class="form-group">
+          <label for="groqApiKeyInput">Groq API Key</label>
+          <div class="api-key-input-wrapper">
+            <input type="password" id="groqApiKeyInput" placeholder="gsk_..." />
+            <button type="button" class="icon-btn toggle-visibility-btn" id="toggleKeyVisibilityBtn">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+          <small class="form-help">
+            Don't have a key? Get one for free at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.
+          </small>
+        </div>
+
+        <div class="key-status-banner hidden" id="keyStatusBanner"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveApiKeyBtn">Save & Apply Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Audio Recording Floating Banner -->
+  <div class="recording-banner hidden" id="recordingBanner">
+    <div class="recording-wave">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <span class="recording-timer" id="recordingTimer">00:00</span>
+    <span class="recording-status">Listening... Speak now</span>
+    <button class="btn-stop-recording" id="stopRecordingBtn">
+      <i data-lucide="square"></i>
+      <span>Finish</span>
+    </button>
+    <button class="btn-cancel-recording" id="cancelRecordingBtn" title="Cancel recording">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+
+  <!-- AI Image Studio Modal (Overhauled Two-Column Creative Workspace) -->
+  <div class="modal-backdrop hidden" id="imageStudioModal">
+    <div class="modal-card image-studio-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-wrap gold">
+            <i data-lucide="palette" class="modal-icon"></i>
+          </div>
+          <div>
+            <h3>AI Image Studio <span class="studio-badge-pro">FLUX Vision</span></h3>
+            <p class="modal-subtitle">High-fidelity generative visual synthesis with multi-format export</p>
+          </div>
+        </div>
+        <button class="icon-btn modal-close-btn" id="closeImageStudioBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body studio-two-col-layout">
+        <!-- Left Column: Creative Controls -->
+        <div class="studio-controls-col">
+          <!-- Prompt Area with Actions -->
+          <div class="form-group">
+            <div class="prompt-header-row">
+              <label for="imageStudioPromptInput">Visual Prompt</label>
+              <div class="prompt-quick-tools">
+                <button type="button" class="prompt-tool-btn" id="studioRandomPromptBtn" title="Surprise me with a random prompt">
+                  <i data-lucide="dices"></i>
+                  <span>Surprise Me</span>
+                </button>
+                <button type="button" class="prompt-tool-btn" id="studioEnhancePromptBtn" title="Enhance prompt with vivid visual details">
+                  <i data-lucide="sparkles"></i>
+                  <span>Enhance</span>
+                </button>
+              </div>
+            </div>
+            <textarea 
+              id="imageStudioPromptInput" 
+              class="studio-prompt-textarea"
+              rows="3" 
+              placeholder="Describe what you want to visualize in vivid detail... (e.g., A celestial observatory on a mountain peak under the Aurora Borealis)"
+            ></textarea>
+          </div>
+
+          <!-- Inspiration Presets -->
+          <div class="studio-presets-row">
+            <span class="presets-label"><i data-lucide="compass"></i> Curated Inspiration:</span>
+            <div class="preset-chips">
+              <button type="button" class="preset-chip" data-style="cyberpunk" data-prompt="Futuristic floating city in the clouds at golden sunset, ultra-detailed architectural concept art">🌆 Sky City</button>
+              <button type="button" class="preset-chip" data-style="fantasy" data-prompt="A majestic mythical dragon made of crystalline ice perched on an obsidian peak, northern lights sky">🐉 Frost Dragon</button>
+              <button type="button" class="preset-chip" data-style="digital-art" data-prompt="Cute robotic red panda tending to bonsai plants in a solarpunk greenhouse, cozy atmospheric lighting">🌿 Solarpunk</button>
+              <button type="button" class="preset-chip" data-style="photorealistic" data-prompt="Hyper-realistic portrait of an astronaut looking at glowing nebula reflections in helmet visor">🚀 Nebula Gaze</button>
+              <button type="button" class="preset-chip" data-style="watercolor" data-prompt="Japanese zen garden with cherry blossoms beside a tranquil koi pond, ethereal watercolor wash">🌸 Zen Garden</button>
+              <button type="button" class="preset-chip" data-style="cinematic-3d" data-prompt="Steampunk mechanical pocket watch floating in zero gravity with intricate exposed brass gears, 3D render">⏱️ Clockwork</button>
+            </div>
+          </div>
+
+          <!-- Style Grid (Visual Cards) -->
+          <div class="form-group">
+            <label class="form-section-title"><i data-lucide="wand-2"></i> Visual Style</label>
+            <div class="studio-style-grid" id="imageStylePills">
+              <button type="button" class="studio-style-card active" data-style="photorealistic">
+                <div class="style-card-icon"><i data-lucide="camera"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Photorealistic</span>
+                  <span class="style-card-sub">8K, Natural lighting</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="digital-art">
+                <div class="style-card-icon"><i data-lucide="brush"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Digital Art</span>
+                  <span class="style-card-sub">ArtStation Concept</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="anime">
+                <div class="style-card-icon"><i data-lucide="sparkles"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Anime Aesthetic</span>
+                  <span class="style-card-sub">Makoto Shinkai style</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="cinematic-3d">
+                <div class="style-card-icon"><i data-lucide="box"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Cinematic 3D</span>
+                  <span class="style-card-sub">Octane volumetric</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="cyberpunk">
+                <div class="style-card-icon"><i data-lucide="zap"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Cyberpunk</span>
+                  <span class="style-card-sub">Moody neon glow</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="fantasy">
+                <div class="style-card-icon"><i data-lucide="sparkle"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Epic Fantasy</span>
+                  <span class="style-card-sub">Ethereal & mythical</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="watercolor">
+                <div class="style-card-icon"><i data-lucide="droplet"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Watercolor</span>
+                  <span class="style-card-sub">Fluid painterly wash</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="sketch">
+                <div class="style-card-icon"><i data-lucide="edit-3"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Pencil Sketch</span>
+                  <span class="style-card-sub">Graphite fine line</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="pixel-art">
+                <div class="style-card-icon"><i data-lucide="grid"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Pixel Art</span>
+                  <span class="style-card-sub">16-bit retro arcade</span>
+                </div>
+              </button>
+              <button type="button" class="studio-style-card" data-style="minimalist-logo">
+                <div class="style-card-icon"><i data-lucide="shapes"></i></div>
+                <div class="style-card-info">
+                  <span class="style-card-name">Minimal Logo</span>
+                  <span class="style-card-sub">Clean vector glyph</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Aspect Ratio & Format Row -->
+          <div class="studio-settings-grid">
+            <!-- Aspect Ratio -->
+            <div class="form-group">
+              <label class="form-section-title"><i data-lucide="aspect-ratio"></i> Aspect Ratio</label>
+              <div class="aspect-ratio-selector" id="imageAspectPills">
+                <button type="button" class="aspect-option active" data-aspect="1:1">
+                  <div class="aspect-box box-1-1"></div>
+                  <div class="aspect-text">
+                    <span class="aspect-ratio-num">1:1</span>
+                    <span class="aspect-label">Square</span>
+                  </div>
+                </button>
+                <button type="button" class="aspect-option" data-aspect="16:9">
+                  <div class="aspect-box box-16-9"></div>
+                  <div class="aspect-text">
+                    <span class="aspect-ratio-num">16:9</span>
+                    <span class="aspect-label">Landscape</span>
+                  </div>
+                </button>
+                <button type="button" class="aspect-option" data-aspect="9:16">
+                  <div class="aspect-box box-9-16"></div>
+                  <div class="aspect-text">
+                    <span class="aspect-ratio-num">9:16</span>
+                    <span class="aspect-label">Portrait</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- File Format -->
+            <div class="form-group">
+              <label class="form-section-title"><i data-lucide="file-check"></i> Output Format</label>
+              <div class="format-selector" id="imageFormatPills">
+                <button type="button" class="format-option active" data-format="png">
+                  <span class="format-badge">PNG</span>
+                  <span class="format-desc">Lossless</span>
+                </button>
+                <button type="button" class="format-option" data-format="jpeg">
+                  <span class="format-badge">JPG</span>
+                  <span class="format-desc">High Res</span>
+                </button>
+                <button type="button" class="format-option" data-format="webp">
+                  <span class="format-badge">WEBP</span>
+                  <span class="format-desc">Optimized</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generate Button in Controls -->
+          <div class="studio-generate-action-row">
+            <button type="button" class="btn btn-primary studio-main-generate-btn" id="generateStudioImgBtn">
+              <i data-lucide="sparkles"></i>
+              <span>Synthesize Artwork</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Canvas Showcase & Filmstrip -->
+        <div class="studio-preview-col">
+          <div class="studio-canvas-container" id="studioCanvasContainer">
+            <!-- Placeholder Empty State -->
+            <div class="studio-empty-state" id="studioEmptyState">
+              <div class="studio-empty-art">
+                <i data-lucide="palette"></i>
+                <div class="empty-art-rings"><span></span><span></span></div>
+              </div>
+              <h4>Your Visual Canvas</h4>
+              <p>Type a prompt and click "Synthesize Artwork" or pick a curated preset to create studio-quality visuals.</p>
+            </div>
+
+            <!-- Result Image Frame -->
+            <div class="studio-img-wrapper hidden" id="studioImgWrapper">
+              <img id="studioPreviewImg" src="" alt="Generated Artwork" />
+              <button type="button" class="canvas-zoom-btn" id="studioZoomCanvasBtn" title="Inspect in Fullscreen Lightbox">
+                <i data-lucide="maximize-2"></i>
+              </button>
+
+              <!-- Synthesis Cinematic Loading Overlay -->
+              <div class="img-loading-overlay hidden" id="studioImgLoadingOverlay">
+                <div class="synthesis-spinner-core">
+                  <div class="spinner-ring"></div>
+                  <div class="spinner-ring-inner"></div>
+                  <i data-lucide="sparkles" class="spinner-sparkle"></i>
+                </div>
+                <div class="synthesis-status-wrap">
+                  <span class="synthesis-title">FLUX Synthesis Engine</span>
+                  <span class="synthesis-sub" id="studioLoadingStep">Synthesizing visual representation...</span>
+                </div>
+                <div class="synthesis-progress-track">
+                  <div class="synthesis-progress-bar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata & Quick Action Strip (visible when image is loaded) -->
+          <div class="studio-meta-action-bar hidden" id="studioMetaActionBar">
+            <div class="studio-image-meta" id="studioImageMeta">
+              <span class="meta-tag" id="studioMetaStyle">Photorealistic</span>
+              <span class="meta-tag" id="studioMetaAspect">1:1</span>
+              <span class="meta-tag" id="studioMetaFormat">PNG</span>
+              <span class="meta-tag" id="studioMetaDimensions">1024×1024</span>
+            </div>
+
+            <div class="studio-action-buttons">
+              <button type="button" class="btn btn-secondary btn-sm" id="regenStudioImgBtn" title="Create a new variation with different seed">
+                <i data-lucide="refresh-cw"></i>
+                <span>Variation</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="insertStudioImgBtn" title="Insert image into the active conversation">
+                <i data-lucide="message-square-plus"></i>
+                <span>Add to Chat</span>
+              </button>
+              <!-- Multi-format Download Dropdown -->
+              <div class="download-dropdown-wrap" id="studioDlDropdownWrap">
+                <button type="button" class="btn btn-primary btn-sm" id="downloadStudioImgBtn">
+                  <i data-lucide="download"></i>
+                  <span>Download</span>
+                </button>
+                <div class="download-format-menu" id="studioDlMenu">
+                  <button type="button" class="dl-fmt-btn" data-fmt="png">PNG (Lossless)</button>
+                  <button type="button" class="dl-fmt-btn" data-fmt="jpg">JPG (High Res)</button>
+                  <button type="button" class="dl-fmt-btn" data-fmt="webp">WEBP (Optimized)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Generations Filmstrip (Session History) -->
+          <div class="studio-history-section">
+            <div class="history-section-header">
+              <span><i data-lucide="film"></i> Session Gallery</span>
+              <span class="history-gallery-count" id="studioGalleryCount">0 pieces</span>
+            </div>
+            <div class="studio-history-filmstrip" id="studioHistoryFilmstrip">
+              <div class="filmstrip-empty">Generated art pieces will appear here</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeStudioFooterBtn">Close Studio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-Screen Interactive Image Lightbox Modal -->
+  <div class="lightbox-modal hidden" id="imageLightboxModal">
+    <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+    
+    <header class="lightbox-header">
+      <div class="lightbox-info">
+        <span class="lightbox-badge"><i data-lucide="palette"></i> FLUX Vision</span>
+        <h4 class="lightbox-title" id="lightboxTitle">Generated Visual Art</h4>
+        <div class="lightbox-meta" id="lightboxMeta">
+          <span id="lbMetaStyle">Photorealistic</span>
+          <span class="lb-sep">•</span>
+          <span id="lbMetaFormat">PNG</span>
+          <span class="lb-sep">•</span>
+          <span id="lbMetaDimensions">1024×1024</span>
+        </div>
+      </div>
+      <div class="lightbox-header-actions">
+        <button class="icon-btn lightbox-btn" id="lightboxCopyPromptBtn" title="Copy Prompt">
+          <i data-lucide="copy"></i>
+        </button>
+        <button class="icon-btn lightbox-btn" id="lightboxRemixBtn" title="Remix in Studio">
+          <i data-lucide="sliders-horizontal"></i>
+        </button>
+        <button class="icon-btn lightbox-btn" id="lightboxCloseBtn" title="Close (Esc)">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="lightbox-viewport" id="lightboxViewport">
+      <div class="lightbox-img-wrapper" id="lightboxImgWrapper">
+        <img src="" alt="Fullscreen visual artwork" id="lightboxImg" />
+      </div>
+    </div>
+
+    <footer class="lightbox-toolbar">
+      <div class="lightbox-zoom-controls">
+        <button class="icon-btn zoom-btn" id="lightboxZoomOutBtn" title="Zoom Out (-)">
+          <i data-lucide="zoom-out"></i>
+        </button>
+        <span class="zoom-level-text" id="lightboxZoomText">100%</span>
+        <button class="icon-btn zoom-btn" id="lightboxZoomInBtn" title="Zoom In (+)">
+          <i data-lucide="zoom-in"></i>
+        </button>
+        <button class="icon-btn zoom-btn" id="lightboxZoomResetBtn" title="Reset Zoom">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+      </div>
+
+      <div class="lightbox-download-controls">
+        <button class="btn btn-secondary btn-sm" id="lightboxDlPngBtn" title="Download as lossless PNG">PNG</button>
+        <button class="btn btn-secondary btn-sm" id="lightboxDlJpgBtn" title="Download as JPEG">JPG</button>
+        <button class="btn btn-secondary btn-sm" id="lightboxDlWebpBtn" title="Download as WEBP">WEBP</button>
+        <button class="btn btn-primary btn-sm" id="lightboxDlDefaultBtn">
+          <i data-lucide="download"></i>
+          <span>Download</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="modal-backdrop hidden" id="shortcutsModal">
+    <div class="modal-card shortcuts-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="keyboard" class="modal-icon"></i>
+          <h3>Keyboard Shortcuts</h3>
+        </div>
+        <button class="icon-btn modal-close-btn" id="closeShortcutsBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body shortcuts-body">
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Send message</span>
+          <span class="shortcut-keys"><kbd>Enter</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Add new line in composer</span>
+          <span class="shortcut-keys"><kbd>Shift</kbd> + <kbd>Enter</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Search conversation history</span>
+          <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Start new conversation</span>
+          <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Toggle sidebar</span>
+          <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>B</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Toggle FLUX Image Studio</span>
+          <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>I</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Dismiss modals & Lightbox</span>
+          <span class="shortcut-keys"><kbd>Esc</kbd></span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Open shortcuts cheatsheet</span>
+          <span class="shortcut-keys"><kbd>?</kbd></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script src="/static/js/app.js?v=9.0"></script>
+</body>
+</html>

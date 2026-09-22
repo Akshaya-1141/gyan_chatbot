@@ -437,7 +437,7 @@ def generate_image_url(
         except Exception as e:
             # Fallback to direct remote URL if local download encountered an error
             local_url = remote_url
-            local_filename = f"remote_{seed}.{fmt}"
+            local_filename = None
 
     display_url = local_url if local_url else remote_url
 

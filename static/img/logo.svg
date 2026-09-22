@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="gyanGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="60%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="gyanViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A5B4FC" />
+      <stop offset="50%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#4338CA" />
+    </linearGradient>
+    <filter id="iconGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Transparent Background Minimalist Neural Lotus / Wisdom Flame Icon -->
+  <!-- Outer Subtle Petal Wings -->
+  <path d="M50 78 C30 74 15 60 18 44 C26 42 38 52 50 68 Z" fill="url(#gyanViolet)" fill-opacity="0.35" filter="url(#iconGlow)" />
+  <path d="M50 78 C70 74 85 60 82 44 C74 42 62 52 50 68 Z" fill="url(#gyanViolet)" fill-opacity="0.35" filter="url(#iconGlow)" />
+
+  <!-- Inner Lotus Petals -->
+  <path d="M50 20 C40 36 28 56 34 70 C40 76 50 78 50 78 C50 78 60 76 66 70 C72 56 60 36 50 20 Z" fill="url(#gyanViolet)" fill-opacity="0.75" />
+  
+  <!-- Central Neural Flame / Quill Core -->
+  <path d="M50 14 C47 28 42 46 45 60 C47 66 50 70 50 70 C50 70 53 66 55 60 C58 46 53 28 50 14 Z" fill="url(#gyanGold)" filter="url(#iconGlow)" />
+  
+  <!-- Quill Nib Split -->
+  <line x1="50" y1="46" x2="50" y2="76" stroke="#07090e" stroke-width="2.2" stroke-linecap="round" />
+
+  <!-- Radiance Sparkle Nodes -->
+  <circle cx="50" cy="46" r="3" fill="url(#gyanGold)" />
+  <circle cx="50" cy="12" r="2.2" fill="#FDE68A" filter="url(#iconGlow)" />
+  <circle cx="28" cy="38" r="1.8" fill="#A5B4FC" opacity="0.8" />
+  <circle cx="72" cy="38" r="1.8" fill="#A5B4FC" opacity="0.8" />
+</svg>
